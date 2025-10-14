@@ -1,0 +1,68 @@
+name: Build RustDesk v1.2.3
+
+on:
+  workflow_dispatch:  # 手动触发
+  push:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '1.2.3'
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Build Windows
+        run: cargo build --release
+        
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-v1.2.3-windows
+          path: target/release/rustdesk.exe
+          retention-days: 30
+
+  build-linux:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: '1.2.3'
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libssl-dev libx11-dev libxrandr-dev
+          
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Build Linux
+        run: cargo build --release
+        
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-v1.2.3-linux
+          path: target/release/rustdesk
+          retention-days: 30
